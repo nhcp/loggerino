@@ -247,4 +247,31 @@ docker run -d \
 docker stop express-app loki alloy-agent
 docker rm express-app loki alloy-agent
 docker network rm monitoring
-```
+
+## Troubleshooting Notes
+
+### Container naming conflicts
+
+If you already have a container named `loki` running elsewhere on your machine, rename this lab's container (e.g. `loki-alloy`) and update the `url` in `alloy-config.alloy` to match. Alloy resolves the Loki hostname via Docker's internal DNS, so the name in the config must exactly match the running container's `--name`.
+
+Example fix:
+
+    docker run -d \
+      --name loki-alloy \
+      --network monitoring \
+      -p 3101:3100 \
+      -v $(pwd)/loki-config.yaml:/etc/loki/local-config.yaml \
+      grafana/loki:latest \
+      -config.file=/etc/loki/local-config.yaml
+
+Then patch the config:
+
+    sed -i 's|http://loki:3100|http://loki-alloy:3100|' alloy-config.alloy
+
+### Querying `detected_level`
+
+Newer Loki versions auto-detect a `detected_level` field from log content, but it's structured metadata, not an indexed stream label. Querying `{app="loggerino", detected_level="error"}` returns no data. Use a label filter expression instead:
+
+    {app="loggerino"} | detected_level="error"
+
+   
