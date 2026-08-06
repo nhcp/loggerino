@@ -34,7 +34,7 @@ loki.process "filter_logs" {
 loki.write "grafana_loki" {
   // Use the internal Docker network name for Loki
   endpoint {
-    url = "http://loki:3100/loki/api/v1/push"
+    url = "http://loki-alloy:3100/loki/api/v1/push"
   }
   
   // Add required labels to the output stream
